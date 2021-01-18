@@ -1,0 +1,9 @@
+v 1.0
+d Materials by Helmut Farbmacher
+d Max Planck Society
+d farbmacher@mpisoc.mpg.de
+d www.farbmacher.de
+
+d 'heckman_lasso': Stata module to estimate a post-Lasso Heckman regression where the exclusion restrictions are determined in a data-driven way.
+
+p heckman_lasso
