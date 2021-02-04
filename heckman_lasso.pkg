@@ -1,9 +1,9 @@
-v 1.0
+v 1.1
 d 'HECKMAN_LASSO': Adaptive post-Lasso Heckman regression
 d 
 d Stata module to estimate a post-Lasso Heckman regression where the exclusion restrictions are determined in a data-driven way.
 d 
-d Distribution-Date:   20210118
+d Distribution-Date:   20210204
 d License: Creative Commons Attribution Share Alike 4.0
 d 
 F heckman_lasso.ado

@@ -1,11 +1,11 @@
-*!version 1.0 Helmut Farbmacher (January 2021)
+*!version 1.1 Helmut Farbmacher (February 2021)
 * 
 ***********************************************
 
 prog heckman_lasso, eclass
 version 16
 
-syntax varlist, seldep(varlist) [twostep notpen(varlist) tuning(string) robust cluster(passthru) verbose lassofirst simulation]		
+syntax varlist, seldep(varlist) [twostep notpen(varlist) robust cluster(passthru) verbose lassofirst simulation]		
 
 gettoken lhs rhs : varlist
 loc selind: list notpen | rhs
@@ -14,11 +14,6 @@ loc selind: list notpen | rhs
 if `:word count `seldep''!=1 {
 	dis "{red}Only one variable is allowed in the seldep-option. You specified: {res}`seldep' {err}"
 	exit 103
-}
-if "`tuning'"=="" local tuning "cv"
-else if !inlist("`tuning'", "ftest","cv","cvse")  {
-    dis "{res}`tuning' {err}is not an implemented tuning"
-    exit 198
 }
 
 // display more results
@@ -63,34 +58,7 @@ foreach var of varlist `selind' {
 	qui replace `var'=``var'_raw'
 }
 
-if "`simulation'"!="" {		//Calculate all three Heckman Post-Lasso regressions at once
-	*Ftest
-	`qui' heckman `lhs' `selind', select(`seldep'=`selind') `twostep' `robust' `cluster'
-	`qui' est store testing
-	`qui' testparm `selind', equation(`lhs')
-	local pvalue=r(p)
-	qui sum `lhs' if `seldep'
-	local rN=r(N)
-	local r=1
-	while (`pvalue'<(0.10/ln(`rN')) & `r'<=`rowsofB') {
-		local steps = B[`r',1]
-		`qui' est restore lassomodel	
-		`qui' lassoselect id=`steps'
-		local nonzero=e(k_nonzero_sel)
-		local allvars=e(k_allvars)
-		if `nonzero'!=`allvars' {
-			local active_ftest=e(allvars_sel)
-			local testset: list selind-active_ftest
-			`qui' est restore testing
-			*`qui' test `testset'
-			`qui' testparm `testset', equation(`lhs')
-			local pvalue=r(p)
-		}
-		else {
-			local active_ftest `selind'
-		}
-		local r=`r'+1	
-	}
+if "`simulation'"!="" {		//Calculate both Heckman Post-Lasso regressions at once
 	*CV
 	`qui' est restore lassomodel
 	local lam=e(lambda_cv)
@@ -115,81 +83,24 @@ if "`simulation'"!="" {		//Calculate all three Heckman Post-Lasso regressions at
 	}	
 }
 else {
-	if "`tuning'"=="ftest" {
-		
-		dis ""
-		dis "{txt}-----------------------------------------------------------"
-		dis "{txt}Post-Lasso-OLS Heckman model (F-test as stopping criterion)"
-		dis "{txt}-----------------------------------------------------------"
+	dis ""
+	dis "{txt}-----------------------------"
+	dis "{txt}Post-Lasso Heckman regression"
+	dis "{txt}-----------------------------"
 
-		`qui' heckman `lhs' `selind', select(`seldep'=`selind') `twostep' `robust' `cluster'
-		`qui' est store testing
-		`qui' testparm `selind', equation(`lhs')
-		local pvalue=r(p)
-		qui sum `lhs' if `seldep'
-		local rN=r(N)
-		local r=1
-		while (`pvalue'<(0.10/ln(`rN')) & `r'<=`rowsofB') {
-			local steps = B[`r',1]
-			`qui' est restore lassomodel	
-			`qui' lassoselect id=`steps'
-			local nonzero=e(k_nonzero_sel)
-			local allvars=e(k_allvars)
-			if `nonzero'!=`allvars' {
-				local active=e(allvars_sel)
-				local testset: list selind-active
-				`qui' est restore testing
-				*`qui' test `testset'
-				`qui' testparm `testset', equation(`lhs')
-				local pvalue=r(p)
-			}
-			else {
-				local active `selind'
-			}
-			local r=`r'+1	
-		}
+	local lam=e(lambda_cv)
+	lassoselect lambda=`lam'
+	local nonzero=e(k_nonzero_sel)
+	if `nonzero'!=0 {
+		local active=e(allvars_sel)
 	}
-
-	if "`tuning'"=="cv" {
-		
-		dis ""
-		dis "{txt}-----------------------------------------------------------------------"
-		dis "{txt}Post-Lasso-OLS Heckman model (CV without SE-rule as stopping criterion)"
-		dis "{txt}-----------------------------------------------------------------------"
-
-		local lam=e(lambda_cv)
-		lassoselect lambda=`lam'
-		local nonzero=e(k_nonzero_sel)
-		if `nonzero'!=0 {
-			local active=e(allvars_sel)
-		}
-		else {
-			local active
-		}
-	}
-
-	if "`tuning'"=="cvse" {
-		
-		dis ""
-		dis "{txt}--------------------------------------------------------------------"
-		dis "{txt}Post-Lasso-OLS Heckman model (CV with SE-rule as stopping criterion)"
-		dis "{txt}--------------------------------------------------------------------"
-
-		local lam=e(lambda_serule)
-		lassoselect lambda=`lam'
-		local nonzero=e(k_nonzero_sel)
-		if `nonzero'!=0 {
-			local active=e(allvars_sel)
-		}
-		else {
-			local active
-		}	
+	else {
+		local active
 	}
 }
 
 if "`notpen'"!="" {
 	if "`simulation'"!="" {	
-		local active_ftest: list notpen | active_ftest
 		local active_cv: list notpen | active_cv
 		local active_cvse: list notpen | active_cvse
 	}
@@ -204,7 +115,7 @@ qui local coll `s(collinear)'
 	local selind `r(varlist)'	
 
 if "`simulation'"!="" {
-	foreach p in ftest cv cvse {
+	foreach p in cv cvse {
 		heckman `lhs' `active_`p'', select(`seldep'=`selind') `twostep' `robust' `cluster'
 		local exclusions_`p': list selind-active_`p'
 		local b_x_`p'=[y]_b[x]
@@ -212,13 +123,11 @@ if "`simulation'"!="" {
 		local b_lambda_`p'=[/mills]_b[lambda]
 		local se_lambda_`p'=[/mills]_se[lambda]
 	}
-	eret scalar nuexclusions_ftest=`:word count `exclusions_ftest''
-	eret local exclusions_ftest = "`exclusions_ftest'"
 	eret scalar nuexclusions_cv=`:word count `exclusions_cv''
 	eret local exclusions_cv = "`exclusions_cv'"
 	eret scalar nuexclusions_cvse=`:word count `exclusions_cvse''
 	eret local exclusions_cvse = "`exclusions_cvse'"
-	foreach p in ftest cv cvse {
+	foreach p in cv cvse {
 		eret local b_x_`p'=`b_x_`p''
 		eret local se_x_`p'=`se_x_`p''
 		eret local b_lambda_`p'=`b_lambda_`p''

@@ -19,7 +19,6 @@
 {synoptline}
 {synopt :{opt seldep(varname)}}specifies the selection indicator; seldep=1 if y observed, otherwise seldep=0 [required]{p_end}
 {synopt :{opt notpen(varlist)}}specifies a list of variables that should, in any case, be included in the final post-Lasso Heckman regression {p_end}
-{synopt :{opt stoprule(string)}}specifies the method to select the tuning parameter; {it:string} may be {it:cv, cvse} or {it:ftest}; default is {it:cv} {p_end}
 {synopt :{opt lassofirst}}use Lasso estimates to derive weights for adaptive Lasso {p_end}
 {synopt :{opt twostep}}performs two-step Heckman regression instead of Maximum Likelihood {p_end}
 {synopt :{opt robust}}calculates robust SEs; works only with Maximum Likelihood {p_end}
