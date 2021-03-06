@@ -23,7 +23,7 @@
  and `x1, x2,...` a set of exogenous variables containing both control variables and potential exclusion restrictions
 
  1. ```{js}
-     heckman_lasso y x1 x2, seldep(ds)
+     heckman_lasso y x1 x2, seldep(ds) twostep
      ```
  
  Let `z1, z2,...` be a set of additional exogenous control variables, which should always be included in the model, then
