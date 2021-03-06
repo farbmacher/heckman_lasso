@@ -18,13 +18,21 @@
  Way 2: Copy the `heckman_lasso.ado` and `heckman_lasso.sthlp` files into your personal ado folder or the current working directory.
 
 ## Example
- Let `y` be the outcome (with `ds` indicating observations where `y` is observed) and `x1, x2,...` be a set of exogenous variables containing both control variables and potential exclusion restrictions, then the post-Lasso Heckman regression would be
-        
+
+ Perform a post-Lasso Heckman regression with `y` the outcome (`ds` indicating observations for which `y` is observed) 
+ and `x1, x2,...` a set of exogenous variables containing both control variables and potential exclusion restrictions
+
  1. ```{js}
-    heckman_lasso y x1 x2, seldep(ds)
-    ```
+     heckman_lasso y x1 x2, seldep(ds)
+     ```
+ 
+ Let `z1, z2,...` be a set of additional exogenous control variables, which should always be included in the model, then
+ 
+ 2. ```{js}
+     heckman_lasso y x1 x2 z1 z2, seldep(ds) twostep notpen(z1 z2)
+     ```
         
 ## References
- * Farbmacher, H. (2021): Sample Selection Models with Unknown Exclusion Restrictions, Discussion Paper.
+ * Farbmacher, H. (2021): Selection Models with Data-Driven Exclusion Restrictions in Managerial Economics, Discussion Paper.
  * Zou H. (2006): The Adaptive Lasso and Its Oracle Properties, *Journal of the American Statistical
              Association* 101, 1418-1429.

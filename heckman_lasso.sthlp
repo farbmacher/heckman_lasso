@@ -32,12 +32,17 @@
 Lasso estimations are performed using the built-in Stata command {manhelp lasso R:lasso linear}, which requires Stata 16. Post-Lasso Heckman estimation 
 is performed using the built-in Stata command {manhelp heckman R:heckman}. For general information about adaptive Lasso see Zou (2006).
 
-{title:Example}
+{title:Examples}
 
-{pstd}Let {opt y} be the outcome (with {opt ds} indicating observations for which {opt y} is observed) and {opt x1, x2,...} be a set of exogenous variables 
-containing both control variables and potential exclusion restrictions, then the post-Lasso Heckman regression would be{p_end}
+{pstd}Perform a post-Lasso Heckman regression with {opt y} the outcome ({opt ds} indicating observations for which {opt y} is observed) 
+and {opt x1, x2,...} a set of exogenous variables containing both control variables and potential exclusion restrictions{p_end}
 
-{phang2}{cmd:. heckman_lasso y x1 x2, seldep(ds)}{p_end}
+{phang2}{cmd:. heckman_lasso y x1 x2, seldep(ds) twostep}{p_end}
+
+{pstd}Let {opt z1, z2,...} be a set of additional exogenous control variables, which should always be included in the model, 
+then{p_end}
+
+{phang2}{cmd:. heckman_lasso y x1 x2 z1 z2, seldep(ds) twostep notpen(z1 z2)}{p_end}
 
 {title:Author}
 
@@ -48,6 +53,6 @@ containing both control variables and potential exclusion restrictions, then the
 
 {title:Reference}
 
-{psee}Farbmacher, H. (2021): {it:Sample Selection Models with Unknown Exclusion Restrictions}, Discussion Paper.{p_end}
+{psee}Farbmacher, H. (2021): {it:Selection Models with Data-Driven Exclusion Restrictions in Managerial Economics}, Discussion Paper.{p_end}
 {psee}Zou, H. (2006): {it:The Adaptive Lasso and Its Oracle Properties}, Journal of the American Statistical Association 101, 1418-1429.{p_end}
 
